@@ -252,11 +252,6 @@ public class BasicAudio : MonoBehaviour {
         recordNum++;
 		isRecording = false;
 		info.text = "Exported to : " + filename;
-		currentDialogNum++;		
-		if (currentDialogNum > textLines.Count - 1)
-        {
-			currentDialogNum = 0;
-        }
 		GameDialogText.text = textLines[currentDialogNum];
 		playRecordingButton.SetActive(false);
 		NextDialog();
