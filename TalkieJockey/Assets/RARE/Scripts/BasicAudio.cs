@@ -148,19 +148,36 @@ public class BasicAudio : MonoBehaviour {
 			micRecordButton.GetComponentInChildren<Text> ().text = "Stop";
 		}
 	}
-		
+	public void NextDialog()
+    {
+		currentDialogNum++;
+		if (currentDialogNum > textLines.Count - 1)
+		{
+			currentDialogNum = 0;
+		}
+		GameDialogText.text = textLines[currentDialogNum];
+	}
+	public void PreviousDialog()
+	{
+		currentDialogNum--;
+		if (currentDialogNum < 0)
+		{
+			currentDialogNum = textLines.Count - 1;
+		}
+		GameDialogText.text = textLines[currentDialogNum];
+	}
 	public void ExportToWavFile(){
 		string filename = CheckFileName("Export Clip");
 		RARE.Instance.ExportClip (filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4), currentAsrc.clip, ClipLoaded, popUp);
         recordNum++;
 		isRecording = false;
 		info.text = "Exported to : " + filename;
-		currentDialogNum++;
-		GameDialogText.text = textLines[currentDialogNum];
+		currentDialogNum++;		
 		if (currentDialogNum > textLines.Count - 1)
         {
 			currentDialogNum = 0;
         }
+		GameDialogText.text = textLines[currentDialogNum];
 	}
 
 	public void PlayStopRecording(){
