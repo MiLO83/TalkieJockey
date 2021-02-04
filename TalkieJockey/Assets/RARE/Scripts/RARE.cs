@@ -410,7 +410,7 @@ public class RARE : MonoBehaviour {
 		int frontIndex = 0;
 		bool flagged = false;
 		for (int i = 0; i < recordedClip.Length; i++) {
-			if (recordedClip [i] > 0f) {
+			if (recordedClip [i] > 0.03f) {
 				frontIndex = i;
 				flagged = true;
 				i = recordedClip.Length;
@@ -429,7 +429,7 @@ public class RARE : MonoBehaviour {
 		int endIndex = 0;
 		bool flagged = false;
 		for (int i = recordedClip.Length-1; i >= 0; --i) {
-			if (recordedClip[i] > 0f) {
+			if (recordedClip[i] > 0.0125f) {
 				endIndex = i;
 				flagged = true;
 				i = -1;

@@ -32,9 +32,12 @@ public class BasicAudio : MonoBehaviour {
 	public Slider playbackSli;
 	//buttons
 	public GameObject trimButton;
+	public GameObject removeSilenceButton;
 	public GameObject micRecordButton;
 	public GameObject playRecordingButton;
-	public GameObject playMusicButton;
+	public GameObject exportRecordingButton;
+	public GameObject previousDialogButton;
+	public GameObject nextDialogButton;
 	//waveform variables
 	private float tracklength = 0.0f;
 	private float currentTrackTime = 0.0f;
@@ -45,7 +48,7 @@ public class BasicAudio : MonoBehaviour {
 	void Start()
     {
 		string[] stringSeparators = new string[] { " = FILE : " };
-		
+		exportRecordingButton.SetActive(false);
 		DirectoryInfo dirInfo = new DirectoryInfo(Application.dataPath + "/../Input/");
 		foreach (FileInfo fi in dirInfo.EnumerateFiles())
         {
@@ -137,6 +140,12 @@ public class BasicAudio : MonoBehaviour {
 			isRecording = false;
 			info.text = "Done.";
 			micRecordButton.GetComponentInChildren<Text> ().text = "1. Mic Record";
+			exportRecordingButton.SetActive(true);
+			nextDialogButton.SetActive(true);
+			previousDialogButton.SetActive(true);
+			trimButton.SetActive(true);
+			playRecordingButton.SetActive(true);
+			removeSilenceButton.SetActive(true);
 		} else {
 			if (currentAsrc.isPlaying) {
 				PlayStopRecording();
@@ -146,6 +155,12 @@ public class BasicAudio : MonoBehaviour {
 			isRecording = true;
 			RARE.Instance.StartMicRecording (599);
 			micRecordButton.GetComponentInChildren<Text> ().text = "Stop";
+			exportRecordingButton.SetActive(false);
+			nextDialogButton.SetActive(false);
+			previousDialogButton.SetActive(false);
+			trimButton.SetActive(false);
+			playRecordingButton.SetActive(false);
+			removeSilenceButton.SetActive(false);
 		}
 	}
 	public void NextDialog()
@@ -156,6 +171,9 @@ public class BasicAudio : MonoBehaviour {
 			currentDialogNum = 0;
 		}
 		GameDialogText.text = textLines[currentDialogNum];
+		exportRecordingButton.SetActive(false);
+		playRecordingButton.SetActive(false);
+		removeSilenceButton.SetActive(false);
 	}
 	public void PreviousDialog()
 	{
@@ -165,6 +183,9 @@ public class BasicAudio : MonoBehaviour {
 			currentDialogNum = textLines.Count - 1;
 		}
 		GameDialogText.text = textLines[currentDialogNum];
+		exportRecordingButton.SetActive(false);
+		playRecordingButton.SetActive(false);
+		removeSilenceButton.SetActive(false);
 	}
 	public void ExportToWavFile(){
 		string filename = CheckFileName("Export Clip");
@@ -178,6 +199,7 @@ public class BasicAudio : MonoBehaviour {
 			currentDialogNum = 0;
         }
 		GameDialogText.text = textLines[currentDialogNum];
+		exportRecordingButton.SetActive(false);
 	}
 
 	public void PlayStopRecording(){

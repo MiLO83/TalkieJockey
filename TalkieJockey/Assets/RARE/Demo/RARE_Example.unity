@@ -1087,8 +1087,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -276.92004, y: 75.78}
-  m_SizeDelta: {x: 147.32, y: 136.55}
+  m_AnchoredPosition: {x: -276.92004, y: 103.55}
+  m_SizeDelta: {x: 147.32, y: 213.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &300545361
 MonoBehaviour:
@@ -1836,8 +1836,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -427.5664, y: -241.99997}
-  m_SizeDelta: {x: -1211.1222, y: -522.14}
+  m_AnchoredPosition: {x: -428.54, y: -237.8}
+  m_SizeDelta: {x: -1213.1, y: -513.73}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &450462791
 MonoBehaviour:
@@ -1863,7 +1863,7 @@ MonoBehaviour:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
-    m_BestFit: 0
+    m_BestFit: 1
     m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 4
@@ -1899,7 +1899,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &468964149
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2063,8 +2063,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -73.5, y: 68.499985}
-  m_SizeDelta: {x: 147, y: 137}
+  m_AnchoredPosition: {x: -73.5, y: 106.54}
+  m_SizeDelta: {x: 147, y: 213.08}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &473948640
 MonoBehaviour:
@@ -4525,9 +4525,12 @@ MonoBehaviour:
   leftcropSli: {fileID: 212267008}
   playbackSli: {fileID: 411318092}
   trimButton: {fileID: 1773914155}
+  removeSilenceButton: {fileID: 220114428}
   micRecordButton: {fileID: 1401338331}
   playRecordingButton: {fileID: 1652810666}
-  playMusicButton: {fileID: 0}
+  exportRecordingButton: {fileID: 1839685494}
+  previousDialogButton: {fileID: 1368603770}
+  nextDialogButton: {fileID: 27804318}
   wfDraw: {fileID: 300545364}
 --- !u!4 &1480530069
 Transform:
@@ -4877,8 +4880,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -37.269886, y: 212.09}
-  m_SizeDelta: {x: 203.6308, y: 61.7448}
+  m_AnchoredPosition: {x: -428.54, y: 36.064}
+  m_SizeDelta: {x: 120.83, y: 19.685}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1532655781
 MonoBehaviour:
