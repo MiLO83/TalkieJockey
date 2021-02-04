@@ -429,7 +429,7 @@ public class RARE : MonoBehaviour {
 		int endIndex = 0;
 		bool flagged = false;
 		for (int i = recordedClip.Length-1; i >= 0; --i) {
-			if (recordedClip[i] > 0.0125f) {
+			if (recordedClip[i] > 0.003f) {
 				endIndex = i;
 				flagged = true;
 				i = -1;
