@@ -88,13 +88,13 @@ public class BasicAudio : MonoBehaviour {
             }
         }
 		if (textLines.Count > 0)
-		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt"))
+		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
 		{
 			GameDialogText.text = textLines[currentDialogNum];
 		}
 		else
 		{
-			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt");
+			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt");
 		}
 	}
 
@@ -207,12 +207,12 @@ public class BasicAudio : MonoBehaviour {
 		{
 			currentDialogNum = 0;
 		}
-		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt"))
+		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
 		{
 			GameDialogText.text = textLines[currentDialogNum];
 		} else
         {
-			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt");
+			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt");
         }
 		exportRecordingButton.SetActive(false);
 		playRecordingButton.SetActive(false);
@@ -254,13 +254,13 @@ public class BasicAudio : MonoBehaviour {
 		{
 			currentDialogNum = filenameLines.Count - 1;
 		}
-		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt"))
+		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
 		{
 			GameDialogText.text = textLines[currentDialogNum];
 		}
 		else
 		{
-			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt");
+			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt");
 		}
 		exportRecordingButton.SetActive(false);
 		playRecordingButton.SetActive(false);
@@ -268,8 +268,8 @@ public class BasicAudio : MonoBehaviour {
 	}
 	public void ExportToWavFile(){
 		string filename = CheckFileName("Export Clip");
-		RARE.Instance.ExportClip (filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4), currentAsrc.clip, ClipLoaded, popUp);
-		File.WriteAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum].Remove(filenameLines[currentDialogNum].Length - 4, 4) + ".txt", GameDialogText.text);
+		RARE.Instance.ExportClip (filenameLines[currentDialogNum], currentAsrc.clip, ClipLoaded, popUp);
+		File.WriteAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt", GameDialogText.text);
 		recordNum++;
 		isRecording = false;
 		info.text = "Exported to : " + filename;
