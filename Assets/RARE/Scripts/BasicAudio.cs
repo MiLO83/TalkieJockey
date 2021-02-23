@@ -333,7 +333,7 @@ public class BasicAudio : MonoBehaviour {
 			{
 				if (File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum++] + ".wav"))
 				{
-					if (currentDialogNum > textLines.Count - 1)
+					if (currentDialogNum >= textLines.Count)
 					{
 						currentDialogNum = 0;
 					}
@@ -341,7 +341,7 @@ public class BasicAudio : MonoBehaviour {
 				}
 				else
 				{
-					if (currentDialogNum > textLines.Count - 1)
+					if (currentDialogNum >= textLines.Count)
 					{
 						currentDialogNum = 0;
 					}
@@ -354,7 +354,7 @@ public class BasicAudio : MonoBehaviour {
 		{
 			currentDialogNum++;
 		}
-		if (currentDialogNum > textLines.Count - 1)
+		if (currentDialogNum >= textLines.Count)
 		{
 			currentDialogNum = 0;
 		}
