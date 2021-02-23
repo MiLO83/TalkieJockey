@@ -5,10 +5,14 @@ using UnityEngine.UI;
 using System.IO;
 using UnityEngine.SceneManagement;
 using System;
+using System.Text;
 public class BasicAudio : MonoBehaviour {
-
+	public string[] langSeparator = new string[] { "%j" };
+	public UnityEngine.UI.Text NoInput;
+	public UnityEngine.UI.Text NoInputJ;
 	public Toggle skipExistingWAVs;
-	public InputField GameDialogText;
+	public InputField GameDialogTextEng;
+	public InputField GameDialogTextEtc;
 	public int currentDialogNum = 0;
 	public List<string> textLinesRaw = new List<string>();
 	public List<string> textLines = new List<string>();
@@ -22,7 +26,7 @@ public class BasicAudio : MonoBehaviour {
 	private int audioListenerRecordNum = 0;
 	private int exportClipRecordNum = 0;
 	private int recordNum = 0;
-	private List<AudioClip> myClips = new List<AudioClip> ();
+	private List<AudioClip> myClips = new List<AudioClip>();
 	private bool isplaying;
 	//text information
 	public Text info;
@@ -44,11 +48,12 @@ public class BasicAudio : MonoBehaviour {
 	private float currentTrackTime = 0.0f;
 	private float MicTime;
 	private bool PlayHeadTouch;
-	public WaveFormDraw wfDraw; 
+	public WaveFormDraw wfDraw;
 
 	void Start()
-    {
+	{
 		string[] stringSeparators = new string[] { " = FILE : " };
+
 		exportRecordingButton.SetActive(false);
 		nextDialogButton.SetActive(true);
 		previousDialogButton.SetActive(true);
@@ -57,25 +62,27 @@ public class BasicAudio : MonoBehaviour {
 		removeSilenceButton.SetActive(false);
 		DirectoryInfo dirInfo = new DirectoryInfo(Application.dataPath + "/../Input/");
 		foreach (FileInfo fi in dirInfo.EnumerateFiles())
-        {
+		{
 			if (fi.Extension == ".txt")
-            {
-				string[] fileLines = File.ReadAllLines(fi.FullName);
+			{
+				string[] fileLines = File.ReadAllLines(fi.FullName, Encoding.GetEncoding("shift-jis"));
 				for (int i = 0; i < fileLines.Length; i++)
-                {
+				{
 					if (fileLines[i] != null)
 					{
 						if (fileLines[i].Contains(stringSeparators[0]))
 						{
-							curText += fileLines[i].Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)[0];
+							curText += fileLines[i].Split(stringSeparators, StringSplitOptions.None)[0];
 							if (curText.Length > 0)
 							{
-								if (fileLines[i] != "\n" && fileLines[i].Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries).Length > 1)
+								if (fileLines[i] != "\n" && fileLines[i].Split(stringSeparators, StringSplitOptions.None).Length > 1)
 								{
 									textLines.Add(curText);
-									filenameLines.Add(fileLines[i].Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)[1].Remove(fileLines[i].Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)[1].Length - 4, 4));
+									filenameLines.Add(fileLines[i].Split(stringSeparators, StringSplitOptions.None)[1].Remove(fileLines[i].Split(stringSeparators, StringSplitOptions.None)[1].Length - 4, 4));
 									Debug.Log(curText);
 									curText = "";
+                                    NoInput.enabled = false;
+									NoInputJ.enabled = false;
 								}
 							}
 						}
@@ -84,29 +91,48 @@ public class BasicAudio : MonoBehaviour {
 							curText += fileLines[i];
 						}
 					}
-                }
-            }
-        }
+				}
+			}
+		}
 		if (textLines.Count > 0)
-		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
-		{
-			GameDialogText.text = textLines[currentDialogNum];
-		}
-		else
-		{
-			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt");
-		}
+			if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
+			{
+				string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
+				if (splitText.Length != 0)
+					GameDialogTextEng.text = splitText[0];
+				if (splitText.Length > 0 && splitText[1] != null)
+				{
+					GameDialogTextEtc.text = splitText[1];
+				}
+				else
+				{
+					GameDialogTextEtc.text = "";
+				}
+			}
+			else
+			{
+				string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
+				if (splitText.Length != 0)
+					GameDialogTextEng.text = splitText[0];
+				if (splitText.Length > 0 && splitText[1] != null)
+				{
+					GameDialogTextEtc.text = splitText[1];
+				} else
+                {
+					GameDialogTextEtc.text = "";
+				}
+			}
 	}
 
-	void Update(){
+	void Update() {
 		//if recording
 		if (isRecording == true)
 		{
-			MicTime  += Time.deltaTime;
+			MicTime += Time.deltaTime;
 			string minutes = Mathf.Floor(MicTime / 60).ToString("0");
 			string seconds = (MicTime % 60).ToString("00");
 			time.text = minutes + ":" + seconds;
-		}  else {
+		} else {
 			MicTime = 0;
 		}
 		if (currentAsrc.clip != null && currentAsrc.isPlaying) {
@@ -120,7 +146,7 @@ public class BasicAudio : MonoBehaviour {
 		//if clips is supposed to be playing and is playing make timesamples = the left clip value and then play so looping is enabled
 		if (currentAsrc.isPlaying == false && isplaying == true) {
 			currentAsrc.timeSamples = (int)leftcropSli.value / currentAsrc.clip.channels;
-			PlayStopRecording ();
+			PlayStopRecording();
 		}
 		if (currentAsrc.clip != null && (leftcropSli.value > 0 || rightcropSli.value < currentAsrc.clip.samples * currentAsrc.clip.channels)) {
 			trimButton.SetActive(true);
@@ -129,30 +155,30 @@ public class BasicAudio : MonoBehaviour {
 		}
 		if (leftcropSli.value > rightcropSli.value) {
 			leftcropSli.value = rightcropSli.value;
-		} 
-		if(rightcropSli.value <= leftcropSli.value){
-			rightcropSli.value = leftcropSli.value ;
+		}
+		if (rightcropSli.value <= leftcropSli.value) {
+			rightcropSli.value = leftcropSli.value;
 		}
 		if (currentAsrc.clip == null) {
 			return;
 		}
-		if ((currentAsrc.timeSamples * currentAsrc.clip.channels) >= (int)rightcropSli.value  && currentAsrc.isPlaying == true ) {
-			currentAsrc.timeSamples = (int)leftcropSli.value/currentAsrc.clip.channels;
-			playbackSli.value = currentAsrc.timeSamples* currentAsrc.clip.channels;
+		if ((currentAsrc.timeSamples * currentAsrc.clip.channels) >= (int)rightcropSli.value && currentAsrc.isPlaying == true) {
+			currentAsrc.timeSamples = (int)leftcropSli.value / currentAsrc.clip.channels;
+			playbackSli.value = currentAsrc.timeSamples * currentAsrc.clip.channels;
 		}
 		if (isplaying && PlayHeadTouch == false) { //updates the playhead
 			playbackSli.value = currentAsrc.timeSamples * currentAsrc.clip.channels;
-		} 
+		}
 	}
 
-	public void MicStartStop(){
+	public void MicStartStop() {
 		if (isRecording) {
 			playRecordingButton.SetActive(true);
-			RARE.Instance.StopMicRecording (CheckFileName("Mic Recording"), ClipLoaded, popUp);
+			RARE.Instance.StopMicRecording(CheckFileName("Mic Recording"), ClipLoaded, popUp);
 			recordNum++;
 			isRecording = false;
 			info.text = "Done.";
-			micRecordButton.GetComponentInChildren<Text> ().text = "1. Mic Record";
+			micRecordButton.GetComponentInChildren<Text>().text = "1. Mic Record";
 			exportRecordingButton.SetActive(true);
 			nextDialogButton.SetActive(true);
 			previousDialogButton.SetActive(true);
@@ -165,8 +191,8 @@ public class BasicAudio : MonoBehaviour {
 			playRecordingButton.SetActive(false);
 			info.text = "Mic recording...";
 			isRecording = true;
-			RARE.Instance.StartMicRecording (599);
-			micRecordButton.GetComponentInChildren<Text> ().text = "Stop";
+			RARE.Instance.StartMicRecording(599);
+			micRecordButton.GetComponentInChildren<Text>().text = "Stop";
 			exportRecordingButton.SetActive(false);
 			nextDialogButton.SetActive(false);
 			previousDialogButton.SetActive(false);
@@ -175,28 +201,29 @@ public class BasicAudio : MonoBehaviour {
 		}
 	}
 	public void NextDialog()
-    {
+	{
 		if (skipExistingWAVs.isOn)
 		{
 			bool advance = true;
 			while (advance)
 			{
 				if (File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum++] + ".wav"))
-                {
+				{
 					if (currentDialogNum > textLines.Count - 1)
 					{
 						currentDialogNum = 0;
 					}
 					Debug.Log("File " + Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".wav EXISTS!");
-				} else
-                {
+				}
+				else
+				{
 					if (currentDialogNum > textLines.Count - 1)
 					{
 						currentDialogNum = 0;
 					}
 					Debug.Log("File " + Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".wav DOES NOT EXIST!");
 					advance = false;
-                }
+				}
 			}
 		}
 		else
@@ -209,71 +236,116 @@ public class BasicAudio : MonoBehaviour {
 		}
 		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
 		{
-			GameDialogText.text = textLines[currentDialogNum];
-		} else
-        {
-			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt");
-        }
+
+			string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
+			if (splitText.Length != 0)
+				GameDialogTextEng.text = splitText[0];
+			if (splitText.Length > 0 && splitText[1] != null)
+			{
+				GameDialogTextEtc.text = splitText[1];
+			}
+			else
+			{
+				GameDialogTextEtc.text = "";
+			}
+		}
+		else
+		{
+			string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
+			if (splitText.Length != 0)
+				GameDialogTextEng.text = splitText[0];
+			if (splitText.Length > 0 && splitText[1] != null)
+			{
+				GameDialogTextEtc.text = splitText[1];
+			}
+			else
+			{
+				GameDialogTextEtc.text = "";
+			}
+		}
+
+
 		exportRecordingButton.SetActive(false);
 		playRecordingButton.SetActive(false);
 		removeSilenceButton.SetActive(false);
 
 	}
 	public void PreviousDialog()
+{
+	if (skipExistingWAVs.isOn)
 	{
-		if (skipExistingWAVs.isOn)
+		bool advance = true;
+		while (advance)
 		{
-			bool advance = true;
-			while (advance)
+			if (File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum--] + ".wav"))
 			{
-				if (File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum--] + ".wav"))
+
+				if (currentDialogNum < 0)
 				{
-					
-					if (currentDialogNum < 0)
-					{
-						currentDialogNum = filenameLines.Count - 1;
-					}
-					Debug.Log("File " + Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".wav EXISTS!");
+					currentDialogNum = filenameLines.Count - 1;
 				}
-				else
+				Debug.Log("File " + Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".wav EXISTS!");
+			}
+			else
+			{
+				if (currentDialogNum < 0)
 				{
-					if (currentDialogNum < 0)
-					{
-						currentDialogNum = filenameLines.Count - 1;
-					}
-					Debug.Log("File " + Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".wav DOES NOT EXIST!");
-					advance = false;
+					currentDialogNum = filenameLines.Count - 1;
 				}
+				Debug.Log("File " + Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".wav DOES NOT EXIST!");
+				advance = false;
 			}
 		}
-		else
-        {
-			currentDialogNum--;
-		}
-		if (currentDialogNum < 0)
-		{
-			currentDialogNum = filenameLines.Count - 1;
-		}
-		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
-		{
-			GameDialogText.text = textLines[currentDialogNum];
-		}
-		else
-		{
-			GameDialogText.text = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt");
-		}
-		exportRecordingButton.SetActive(false);
-		playRecordingButton.SetActive(false);
-		removeSilenceButton.SetActive(false);
 	}
+	else
+	{
+		currentDialogNum--;
+	}
+	if (currentDialogNum < 0)
+	{
+		currentDialogNum = filenameLines.Count - 1;
+	}
+	if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
+	{
+		string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
+			if (splitText.Length != 0)
+				GameDialogTextEng.text = splitText[0];
+			if (splitText.Length > 0 && splitText[1] != null)
+			{
+				GameDialogTextEtc.text = splitText[1];
+			}
+			else
+			{
+				GameDialogTextEtc.text = "";
+			}
+		}
+	else
+	{
+		string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
+			if (splitText.Length != 0)
+				GameDialogTextEng.text = splitText[0];
+			if (splitText.Length > 0 && splitText[1] != null)
+			{
+				GameDialogTextEtc.text = splitText[1];
+			}
+			else
+			{
+				GameDialogTextEtc.text = "";
+			}
+		}
+
+	exportRecordingButton.SetActive(false);
+	playRecordingButton.SetActive(false);
+	removeSilenceButton.SetActive(false);
+}
 	public void ExportToWavFile(){
 		string filename = CheckFileName("Export Clip");
 		RARE.Instance.ExportClip (filenameLines[currentDialogNum], currentAsrc.clip, ClipLoaded, popUp);
-		File.WriteAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt", GameDialogText.text);
+		File.WriteAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt", GameDialogTextEng.text + "%J" + GameDialogTextEtc.text);
 		recordNum++;
 		isRecording = false;
 		info.text = "Exported to : " + filename;
-		GameDialogText.text = textLines[currentDialogNum];
+		GameDialogTextEng.text = textLines[currentDialogNum];
 		playRecordingButton.SetActive(false);
 		NextDialog();
 	}
