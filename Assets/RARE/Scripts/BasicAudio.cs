@@ -6,8 +6,58 @@ using System.IO;
 using UnityEngine.SceneManagement;
 using System;
 using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+
+public class TranslationResult
+{
+	public DetectedLanguage DetectedLanguage { get; set; }
+	public TextResult SourceText { get; set; }
+	public Translation[] Translations { get; set; }
+}
+
+public class DetectedLanguage
+{
+	public string Language { get; set; }
+	public float Score { get; set; }
+}
+
+public class TextResult
+{
+	public string Text { get; set; }
+	public string Script { get; set; }
+}
+
+public class Translation
+{
+	public string Text { get; set; }
+	public TextResult Transliteration { get; set; }
+	public string To { get; set; }
+	public Alignment Alignment { get; set; }
+	public SentenceLength SentLen { get; set; }
+}
+
+public class Alignment
+{
+	public string Proj { get; set; }
+}
+
+public class SentenceLength
+{
+	public int[] SrcSentLen { get; set; }
+	public int[] TransSentLen { get; set; }
+}
+
 public class BasicAudio : MonoBehaviour {
-	public string[] langSeparator = new string[] { "%j" };
+	public static InputField keyInput;
+	public static InputField locationInput;
+	public static InputField languageInput;
+	public Button BatchTranslateBtn;
+	public static string translatedText = "";
+	private static readonly string endpoint = "https://api.cognitive.microsofttranslator.com/";
+	private static readonly string location = "canadacentral";
+	public string[] langSeparator = new string[] { "%J" };
 	public UnityEngine.UI.Text NoInput;
 	public UnityEngine.UI.Text NoInputJ;
 	public Toggle skipExistingWAVs;
@@ -50,6 +100,36 @@ public class BasicAudio : MonoBehaviour {
 	private bool PlayHeadTouch;
 	public WaveFormDraw wfDraw;
 
+
+	static async Task TranslateString(string language, string textToTranslate)
+    {
+		string route = "/translate?api-version=3.0&from=en&to=" + language + "& to=it";
+		object[] body = new object[] { new { Text = textToTranslate } };
+		var requestBody = JsonConvert.SerializeObject(body);
+
+		using (var client = new HttpClient())
+		using (var request = new HttpRequestMessage())
+		{
+			
+			// Build the request.
+			request.Method = HttpMethod.Post;
+			request.RequestUri = new Uri(endpoint + route);
+			request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+			request.Headers.Add("Ocp-Apim-Subscription-Key", keyInput.text);
+			request.Headers.Add("Ocp-Apim-Subscription-Region", locationInput.text);
+
+			// Send the request and get response.
+			HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+			// Read response as a string.
+			string result = await response.Content.ReadAsStringAsync();
+			TranslationResult[] deserializedOutput = JsonConvert.DeserializeObject<TranslationResult[]>(result);
+			// Iterate over the deserialized results.
+			translatedText = deserializedOutput[0].Translations[0].Text;
+			Debug.Log(deserializedOutput[0].Translations[0].Text);
+			PlayerPrefs.SetInt("Characters", PlayerPrefs.GetInt("Characters") + textToTranslate.Length);
+			PlayerPrefs.Save();
+		}
+	}
 	void Start()
 	{
 		string[] stringSeparators = new string[] { " = FILE : " };
@@ -98,30 +178,74 @@ public class BasicAudio : MonoBehaviour {
 			if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
 			{
 				string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
-				if (splitText.Length != 0)
-					GameDialogTextEng.text = splitText[0];
-				if (splitText.Length > 0 && splitText[1] != null)
+				if (splitText != null)
 				{
-					GameDialogTextEtc.text = splitText[1];
-				}
-				else
-				{
-					GameDialogTextEtc.text = "";
+					if (splitText.Length > 0)
+						GameDialogTextEng.text = splitText[0];
+					if (splitText.Length > 1 && splitText[1] != null)
+					{
+						GameDialogTextEtc.text = splitText[1];
+					}
+					else
+					{
+						GameDialogTextEtc.text = "";
+					}
 				}
 			}
 			else
 			{
 				string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
-				if (splitText.Length != 0)
-					GameDialogTextEng.text = splitText[0];
-				if (splitText.Length > 0 && splitText[1] != null)
+				if (splitText != null)
 				{
-					GameDialogTextEtc.text = splitText[1];
-				} else
-                {
-					GameDialogTextEtc.text = "";
+					if (splitText.Length > 0)
+						GameDialogTextEng.text = splitText[0];
+					if (splitText.Length > 1 && splitText[1] != null)
+					{
+						GameDialogTextEtc.text = splitText[1];
+					}
+					else
+					{
+						GameDialogTextEtc.text = "";
+					}
 				}
 			}
+		Debug.Log("Aprox Translated Char : " + PlayerPrefs.GetInt("Characters").ToString());
+	}
+	public void BatchTranslateButton()
+    {
+		BatchTranslateBtn.enabled = false;
+		StartCoroutine(BatchTranslate());
+    }
+	public IEnumerator BatchTranslate()
+    {
+		while (currentDialogNum < textLines.Count)
+		{
+			if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
+			{
+
+				string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
+				if (splitText != null)
+				{
+					if (splitText.Length > 0)
+					{
+						TranslateString(languageInput.text, splitText[0]);
+						GameDialogTextEng.text = translatedText;
+						if (splitText.Length > 1 && splitText[1] != null)
+						{
+							GameDialogTextEtc.text = splitText[1];
+						}
+						else
+						{
+							GameDialogTextEtc.text = "";
+						}
+					}
+					File.WriteAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt", GameDialogTextEng.text + "%J" + GameDialogTextEtc.text);
+				}
+			}
+
+			NextDialog();
+			yield return new WaitForSeconds(1.75f);
+		}
 	}
 
 	void Update() {
@@ -238,29 +362,35 @@ public class BasicAudio : MonoBehaviour {
 		{
 
 			string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
-			if (splitText.Length != 0)
-				GameDialogTextEng.text = splitText[0];
-			if (splitText.Length > 0 && splitText[1] != null)
+			if (splitText != null)
 			{
-				GameDialogTextEtc.text = splitText[1];
-			}
-			else
-			{
-				GameDialogTextEtc.text = "";
+				if (splitText.Length > 0)
+					GameDialogTextEng.text = splitText[0];
+				if (splitText.Length > 1 && splitText[1] != null)
+				{
+					GameDialogTextEtc.text = splitText[1];
+				}
+				else
+				{
+					GameDialogTextEtc.text = "";
+				}
 			}
 		}
 		else
 		{
 			string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
-			if (splitText.Length != 0)
-				GameDialogTextEng.text = splitText[0];
-			if (splitText.Length > 0 && splitText[1] != null)
+			if (splitText != null)
 			{
-				GameDialogTextEtc.text = splitText[1];
-			}
-			else
-			{
-				GameDialogTextEtc.text = "";
+				if (splitText.Length > 0)
+					GameDialogTextEng.text = splitText[0];
+				if (splitText.Length > 1 && splitText[1] != null)
+				{
+					GameDialogTextEtc.text = splitText[1];
+				}
+				else
+				{
+					GameDialogTextEtc.text = "";
+				}
 			}
 		}
 
@@ -305,32 +435,38 @@ public class BasicAudio : MonoBehaviour {
 	{
 		currentDialogNum = filenameLines.Count - 1;
 	}
-	if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
-	{
-		string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
-			if (splitText.Length != 0)
-				GameDialogTextEng.text = splitText[0];
-			if (splitText.Length > 0 && splitText[1] != null)
+		if (!File.Exists(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt"))
+		{
+			string[] splitText = textLines[currentDialogNum].Split(langSeparator, StringSplitOptions.None);
+			if (splitText != null)
 			{
-				GameDialogTextEtc.text = splitText[1];
-			}
-			else
-			{
-				GameDialogTextEtc.text = "";
+				if (splitText.Length != 0)
+					GameDialogTextEng.text = splitText[0];
+				if (splitText.Length > 0 && splitText[1] != null)
+				{
+					GameDialogTextEtc.text = splitText[1];
+				}
+				else
+				{
+					GameDialogTextEtc.text = "";
+				}
 			}
 		}
-	else
-	{
-		string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
-			if (splitText.Length != 0)
-				GameDialogTextEng.text = splitText[0];
-			if (splitText.Length > 0 && splitText[1] != null)
+		else
+		{
+			string[] splitText = File.ReadAllText(Application.dataPath + "/../Output/" + filenameLines[currentDialogNum] + ".txt").Split(langSeparator, StringSplitOptions.None);
+			if (splitText != null)
 			{
-				GameDialogTextEtc.text = splitText[1];
-			}
-			else
-			{
-				GameDialogTextEtc.text = "";
+				if (splitText.Length != 0)
+					GameDialogTextEng.text = splitText[0];
+				if (splitText.Length > 0 && splitText[1] != null)
+				{
+					GameDialogTextEtc.text = splitText[1];
+				}
+				else
+				{
+					GameDialogTextEtc.text = "";
+				}
 			}
 		}
 
